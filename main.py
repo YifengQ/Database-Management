@@ -24,18 +24,48 @@ def run_commands(commands):
     """
     for command in commands:
         l = command.split(' ')
+        command = command.upper()
+        size = len(l)
         if 'CREATE DATABASE' in command:
-            script.create_database(l[2][:-1])
+            if size == 3:
+                script.create_database(l[2][:-1])
+            else:
+                print('Syntax Error', command)
         elif 'DROP DATABASE' in command:
-            script.drop_database(l[2][:-1])
+            if size == 3:
+                script.drop_database(l[2][:-1])
+            else:
+                print('Syntax Error', command)
+        elif 'DROP TABLE' in command:
+            if size == 3:
+                script.drop_table(l[2][:-1])
+            else:
+                print('Syntax Error', command)
         elif 'USE' in command:
-            script.use_database(l[1][:-1])
+            if size == 2:
+                script.use_database(l[1][:-1])
+            else:
+                print('Syntax Error', command)
         elif 'CREATE TABLE' in command:
-            script.create_table(l[2:])
+            if size >= 3:
+                script.create_table(l[2:])
+            else:
+                print('Syntax Error:', command)
         elif 'SELECT * FROM' in command:
-            script.select_all(l[3][:-1])
+            if size == 4:
+                script.select_all(l[3][:-1])
+            else:
+                print('Syntax Error', command)
+        elif 'ALTER TABLE' in command:
+            if size >= 4:
+                script.alter_table(l[2:])
+            else:
+                print('Syntax Error', command)
         elif '.EXIT' in command:
             return
+        else:
+            print('Syntax Error | Unknown Command')
+            print(command)
 
 
 run_commands(file.commands)

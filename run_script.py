@@ -45,10 +45,11 @@ class RunScript:
         if os.path.exists(path):   # check if path exists
             cmd = 'rm ' + '-rf ' + path  # concatenate command to input
             os.system(cmd)  # runs the command
-            output = 'Database ' + db + ' dropped.'
+            output = 'Database ' + db + ' deleted.'
             print(output)
         else:
-            print('Directory Does Not Exist')
+            output = '!Failed to delete ' + db + ' because it already exists.'
+            print(output)
 
     def use_database(self, db):
         """
@@ -124,6 +125,32 @@ class RunScript:
                 var.append(inp[i] + ' | ' + inp[i+1][:-1])
         f.write(str(var))  # write to file
         f.close()  # close file
+
+    def alter_table(self, inp):
+
+        tbl = inp[0]
+        var = inp[1:]
+        path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
+        if os.path.exists(path):  # check if path exists
+            f = open(path, "a")  # opens file
+            f.write(str(var))
+            f.close()  # close file
+            output = 'Table ' + tbl + ' modified.'
+            print(output)
+        else:
+            output = '!Failed to alter table ' + tbl + ' because it does not exist'
+            print(output)
+
+    def drop_table(self, tbl):
+        path = os.path.join(self.dbDir, tbl)  # check if path exists
+        if os.path.exists(path):  # check if path exists
+            cmd = 'rm ' + '-rf ' + path  # concatenate command to run
+            os.system(cmd)  # runs the command
+            output = 'Table ' + tbl + ' deleted.'
+            print(output)
+        else:
+            output = '!Failed to delete ' + tbl + ' because it does not exists.'
+            print(output)
 
 
 # script = RunScript()
