@@ -24,43 +24,47 @@ def run_commands(commands):
     """
     for command in commands:
         l = command.split(' ')
-        command = command.upper()
-        size = len(l)
+        command = command.upper()  # converts the command to all uppercase so it can cover case sensitivity
+        size = len(l)  # gets length to handle missing spaces
         if 'CREATE DATABASE' in command:
             if size == 3:
                 script.create_database(l[2][:-1])
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif 'DROP DATABASE' in command:
             if size == 3:
                 script.drop_database(l[2][:-1])
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif 'DROP TABLE' in command:
             if size == 3:
                 script.drop_table(l[2][:-1])
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif 'USE' in command:
             if size == 2:
                 script.use_database(l[1][:-1])
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif 'CREATE TABLE' in command:
             if size >= 3:
-                script.create_table(l[2:])
+                command = " ".join(l[3:])
+                command = command[1:-2]
+                script.create_table(l[2], command)
             else:
                 print('Syntax Error:', command)
         elif 'SELECT * FROM' in command:
             if size == 4:
                 script.select_all(l[3][:-1])
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif 'ALTER TABLE' in command:
             if size >= 4:
-                script.alter_table(l[2:])
+                command = " ".join(l[4:])
+                command = command[:-1]
+                script.alter_table(l[2], command)
             else:
-                print('Syntax Error', command)
+                print('Syntax Error:', command)
         elif '.EXIT' in command:
             return
         else:

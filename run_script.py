@@ -67,22 +67,26 @@ class RunScript:
         else:
             print('Cannot Use Database | Does Not Exist')
 
-    def create_table(self, inp):
+    def create_table(self, tbl, inp):
         """
         Gets the path to that table and will check if that already exists. Then if it does not exist, it will change the
         directory and call a helper function to append data to the table.
+        :param tbl:
         :param inp: Contains all the data that will be entered into the table
         :return: None
         """
-        tbl = inp[0]
         path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
         if os.path.exists(path):   # check if path exists
             output = '!Failed to create table ' + tbl + ' because it already exists.'
             print(output)
         else:
             os.mknod(path)  # creates file system of path
+            out = inp.split(',')
+            out = "|".join(out)
+            f = open(path, "a")  # opens file
+            f.write(out)  # write to file
+            f.close()  # close file
             output = 'Table ' + tbl + ' created.'
-            self.tbl_helper(inp, path)  # calls helper to write to table
             print(output)
 
     def select_all(self, table):
@@ -100,40 +104,23 @@ class RunScript:
                 print(line)
             self.data = []
         else:
-            output = '!Failed to query table ' + table + 'because it does not exist.'
+            output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
 
-    #  "a" - Append
-    #  "w" - Write
-
-    def tbl_helper(self, inp, path):
+    def alter_table(self, tbl, inp):
         """
-        Gets the path to the table and opens it to be written too. Then it will splice the data so the extra character
-        from the raw input are not there.
-        :param inp: The variables that need to be written
-        :param path: String with table path
+        Will check if the table exists, if it doesn't exist it will print out an error.
+        If it exists it will then append the extra values to the file.
+        :param tbl: String containing name of table
+        :param inp: string that need to be inputted
         :return: None
         """
-        f = open(path, "a")  # opens file
-        var = []
-        for i in range(1, len(inp), 2):
-            if i == 1:  # has different extra character at beginning
-                var.append(inp[i][1:] + ' | ' + inp[i+1][:-1])  # splice off extra characters,concatenate back together
-            elif i == len(inp) - 2:  # has different extra character at end
-                var.append(inp[i] + ' | ' + inp[i + 1][:-2])
-            else:
-                var.append(inp[i] + ' | ' + inp[i+1][:-1])
-        f.write(str(var))  # write to file
-        f.close()  # close file
-
-    def alter_table(self, inp):
-
-        tbl = inp[0]
-        var = inp[1:]
         path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
+            out = inp.split(',')  # takes the string a separates all the values by comma's and storing it into a list
+            out = "|".join(out)  # joins the list back together into a string with a '|' at value
             f = open(path, "a")  # opens file
-            f.write(str(var))
+            f.write('| ' + out)  # adds '|' to separate existing values and then writes the output string
             f.close()  # close file
             output = 'Table ' + tbl + ' modified.'
             print(output)
@@ -142,6 +129,12 @@ class RunScript:
             print(output)
 
     def drop_table(self, tbl):
+        """
+        Checks if the table exists and if that table exists it will delete that path. If it does not exist
+        it will error and print the error message
+        :param tbl: string that contains the name of the table
+        :return: None
+        """
         path = os.path.join(self.dbDir, tbl)  # check if path exists
         if os.path.exists(path):  # check if path exists
             cmd = 'rm ' + '-rf ' + path  # concatenate command to run
