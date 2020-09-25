@@ -20,8 +20,8 @@ class RunScript:
 
     def create_database(self, db):
         """
-        Joins the parent directory with the entered database. Checks if the database already exists, and will either
-        error out or create that database.
+        Joins the parent directory with the entered database name. Checks if the database already exists. If it exists
+        already it will print out and error, if not it will create a directory of the database name.
         :param db: string that contains the name of the database
         :return: None
         """
@@ -145,11 +145,3 @@ class RunScript:
             output = '!Failed to delete ' + tbl + ' because it does not exists.'
             print(output)
 
-
-# script = RunScript()
-#
-# # script.create_database('db_1;')
-# # #script.drop_database('db_1;')
-# script.use_database('db_1;')
-# script.create_table(['tbl_1', '(a1', 'int,', 'a2', 'varchar(20));'])
-# script.select_all('tbl_1')
