@@ -95,6 +95,8 @@ def run_commands():
                 script.alter_table(l[2], command)  # passes in the name of table and sting of variables
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
+        elif 'INSERT' in command:
+            script.insert_table(l[2],l[3:])
         elif '.EXIT' in command:
             return
         else:  # if the command is not recognised it's and unknown command or there is something wring with the syntax
@@ -102,5 +104,4 @@ def run_commands():
             print(command)
 
 
-read_file()
-
+run_commands()
