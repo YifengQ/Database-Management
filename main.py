@@ -5,6 +5,7 @@ __university__ = "University of Nevada Reno"
 __assignment__ = "Project 1"
 __date__ = "9/15/2020"
 
+import re
 import sys
 from run_script import RunScript
 
@@ -12,21 +13,37 @@ from run_script import RunScript
 script = RunScript()
 
 
+# def read_file():
+#     """
+#     Opens the file with standard input, and reads every line and checks if it is a valid command to be
+#     appended to the list
+#     :return: Returns a List of the Commands
+#     """
+#     commands = []
+#     for line in sys.stdin:
+#         if line == '\r\n' or line[0:2] == '--':  # checks if it is a empty new line or it starts with '--'
+#             continue
+#         else:
+#             commands.append(line.rstrip())  # removes newline and special characters from line to append to list
+#
+#     return commands
+
 def read_file():
     """
     Opens the file with standard input, and reads every line and checks if it is a valid command to be
     appended to the list
     :return: Returns a List of the Commands
     """
-    commands = []
-    for line in sys.stdin:
-        if line == '\r\n' or line[0:2] == '--':  # checks if it is a empty new line or it starts with '--'
-            continue
-        else:
-            commands.append(line.rstrip())  # removes newline and special characters from line to append to list
-
+    with open("PA2_test.sql") as file_in:
+        commands = []
+        for line in file_in:
+            if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+                continue
+            else:
+                line = re.sub(r"[\n\t]*", "", line)
+                commands.append(line.rstrip())  # removes newline and special characters from line to append to list
+    print(commands)
     return commands
-
 
 def run_commands():
     """
@@ -85,5 +102,5 @@ def run_commands():
             print(command)
 
 
-run_commands()
+read_file()
 

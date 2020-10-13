@@ -6,7 +6,7 @@ __assignment__ = "Project 1"
 __date__ = "9/15/2020"
 
 import os
-
+import re
 
 class RunScript:
 
@@ -95,14 +95,14 @@ class RunScript:
         :param table: String that contains name of the table
         :return:
         """
+        data = []
         path = os.path.join(self.dbDir, table)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
             with open(path) as file_in:  # starts reading from file
                 for line in file_in:
-                    self.data.append(line.rstrip())
-            for line in self.data:  # prints data to terminal
+                    data.append(line.rstrip())
+            for line in data:  # prints data to terminal
                 print(line)
-            self.data = []
         else:
             output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
@@ -144,4 +144,48 @@ class RunScript:
         else:
             output = '!Failed to delete ' + tbl + ' because it does not exists.'
             print(output)
+
+################################### Additional Assignmnet 2 Fuctions  #################################
+
+    def read_all(self, table):
+        """
+        Checks if the table exists and then reads all the data from the file and prints it out.
+        :param table: String that contains name of the table
+        :return:
+        """
+        self.data = []
+        path = os.path.join(self.dbDir, table)  # joins cwd and db name
+        if os.path.exists(path):  # check if path exists
+            with open(path) as file_in:  # starts reading from file
+                for line in file_in:
+                    self.data.append(line.rstrip())
+            return self.data
+        else:
+            output = '!Failed to query table ' + table + ' because it does not exist.'
+            print(output)
+
+    def insert_helper(self, path, inp):
+        f = open(path, "a")  # opens file
+        f.truncate(0)
+        for line in inp:
+            out = "|".join(line)
+            out += '\n'
+            f.write(out)  # write to file
+        f.close()  # close file
+        output = '1 New Record Inserted'
+        print(output)
+
+    def insert_table(self, table, new_data):
+
+        path = os.path.join(self.dbDir, table)
+        res = []
+        data = self.read_all(table)
+        for line in data:
+            res.append(line.split('|'))
+
+        new_data = "".join(new_data)[7:-2]
+        new_data = new_data.split(',')
+        res.append(new_data)
+        self.insert_helper(path, res)
+
 
