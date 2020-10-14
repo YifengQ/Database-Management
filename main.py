@@ -36,13 +36,18 @@ def read_file():
     """
     with open("PA2_test.sql") as file_in:
         commands = []
+        temp = []
         for line in file_in:
             if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
                 continue
             else:
-                line = re.sub(r"[\n\t]*", "", line)
-                commands.append(line.rstrip())  # removes newline and special characters from line to append to list
-    print(commands)
+                if ';' not in line:
+                    temp.append(line.rstrip()+' ')
+                else:
+                    temp = "".join(temp)
+                    line = re.sub(r"[\n\t]*", "", line)
+                    commands.append(temp + line.rstrip())  # removes newline and special characters from line to append to list
+                    temp = []
     return commands
 
 def run_commands():
@@ -97,6 +102,9 @@ def run_commands():
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'INSERT' in command:
             script.insert_table(l[2],l[3:])
+        elif 'UPDATE' in command:
+            script.update_table(l[1], l[2:])
+            #print(command)
         elif '.EXIT' in command:
             return
         else:  # if the command is not recognised it's and unknown command or there is something wring with the syntax

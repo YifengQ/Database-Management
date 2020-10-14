@@ -147,14 +147,13 @@ class RunScript:
 
 ################################### Additional Assignmnet 2 Fuctions  #################################
 
-    def read_all(self, table):
+    def read_all(self, path):
         """
         Checks if the table exists and then reads all the data from the file and prints it out.
         :param table: String that contains name of the table
         :return:
         """
         self.data = []
-        path = os.path.join(self.dbDir, table)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
             with open(path) as file_in:  # starts reading from file
                 for line in file_in:
@@ -179,7 +178,7 @@ class RunScript:
 
         path = os.path.join(self.dbDir, table)
         res = []
-        data = self.read_all(table)
+        data = self.read_all(path)
         for line in data:
             res.append(line.split('|'))
 
@@ -188,4 +187,35 @@ class RunScript:
         res.append(new_data)
         self.insert_helper(path, res)
 
+    def update_table(self, table, data):
+        path = os.path.join(self.dbDir, table)
+        var = data[1]
+        var2 = data[5]
+        operation = data[2]
+        changeto = data[3]
+        change = data[7][:-1]
+        new = self.update_helper(path, var, var2, operation, change, changeto)
+        self.insert_helper(path, new)
 
+    def update_helper(self, path, var, var2, operation, change, changeto):
+        data = self.read_all(path)
+        res = [[data[0]]]
+        curr = []
+        for line in data:
+            curr.append(line.split('|'))
+
+        where_idx = self.find_idx(curr[0], var2)
+        set_idx = self.find_idx(curr[0], var)
+        for line in curr[1:]:
+            if line[where_idx] == change:
+                line[set_idx] = changeto
+                res.append(line)
+            else:
+                res.append(line)
+        return res
+
+    def find_idx(self, inp, var):
+        for i in range(len(inp)):
+            if var in inp[i]:
+                return i
+        return -1
