@@ -160,7 +160,7 @@ class RunScript:
                     self.data.append(line.rstrip())
             return self.data
         else:
-            output = '!Failed to query table ' + table + ' because it does not exist.'
+            output = '!Failed to query table because it does not exist.'
             print(output)
 
     def insert_helper(self, path, inp):
@@ -200,9 +200,7 @@ class RunScript:
     def update_helper(self, path, var, var2, operation, change, changeto):
         data = self.read_all(path)
         res = [[data[0]]]
-        curr = []
-        for line in data:
-            curr.append(line.split('|'))
+        curr = self.read_all_list(data)
 
         where_idx = self.find_idx(curr[0], var2)
         set_idx = self.find_idx(curr[0], var)
@@ -219,3 +217,81 @@ class RunScript:
             if var in inp[i]:
                 return i
         return -1
+
+    def delete_items(self, table, data):
+        path = os.path.join(self.dbDir, table)
+        where = data[1]
+        if data[2] == '=':
+            operation = data[2] + data[2]
+        else:
+            operation = data[2]
+        var = data[3][:-1]
+        new = self.delete_helper(path, where, operation, var)
+        self.insert_helper(path, new)
+        return
+
+    def delete_helper(self, path, where, operation, var):
+        data = self.read_all(path)
+        res = [[data[0]]]
+        curr = self.read_all_list(data)
+        where_idx = self.find_idx(curr[0], where)
+        for line in curr[1:]:
+            if operation == '==':
+                if eval('line[where_idx]' + operation + 'var'):
+                    continue
+                else:
+                    res.append(line)
+            elif operation == '!=':
+                if eval('line[where_idx]' + operation + 'var'):
+                    res.append(line)
+            else:
+                if eval('float(line[where_idx])' + operation + 'float(var)'):
+                    continue
+                else:
+                    res.append(line)
+        return res
+
+    def select_specific(self, var, table, where):
+        print(var, table, where)
+        obj = where[1]
+        op = where[2]
+        w = where[3][:-1]
+        path = os.path.join(self.dbDir, table)
+        data = self.read_all(path)
+        missing = []
+        variables = self.get_curr_var(data[0])
+        for i in range(len(var)):
+            var[i] = var[i].replace(',', '')
+        for v in variables:
+            if v not in var:
+                missing.append(v)
+        res = self.select_specific_helper(path, missing, data, obj, op, w)
+        self.insert_helper(path, res)
+        self.select_all(table)
+
+    def select_specific_helper(self, path, missing, data, obj, op, w):
+        res = []
+        data = self.delete_helper(path, obj, op, w)
+        for line in data:
+            new = "|".join(line)
+            res.append(new.split('|'))
+        for miss in missing:
+            where_idx = self.find_idx(res[0], miss)
+            for line in res:
+                del line[where_idx]
+        return res
+
+    def read_all_list(self, data):
+        curr = []
+        for line in data:
+            curr.append(line.split('|'))
+        return curr
+
+    def get_curr_var(self, data):
+        res = []
+        new = data.split('| ')
+        for var in new:
+            s = var.split(' ')
+            s[0] = s[0].replace(',', '')
+            res.append(s[0])
+        return res

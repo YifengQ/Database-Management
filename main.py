@@ -63,48 +63,53 @@ def run_commands():
         size = len(l)  # gets length to handle missing spaces
         if 'CREATE DATABASE' in command:
             if size == 3:  # checks if all arguments are present
-                script.create_database(l[2][:-1])  # only gets the database name and removes the ';' from the back
+                script.create_database(l[2][:-1].upper())  # only gets the database name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'DROP DATABASE' in command:
             if size == 3:  # checks if all arguments are present
-                script.drop_database(l[2][:-1])   # only gets the database name and removes the ';' from the back
+                script.drop_database(l[2][:-1].upper())   # only gets the database name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'DROP TABLE' in command:
             if size == 3:  # checks if all arguments are present
-                script.drop_table(l[2][:-1])   # only gets the database name and removes the ';' from the back
+                script.drop_table(l[2][:-1].upper())   # only gets the database name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'USE' in command:
             if size == 2:  # checks if all arguments are present
-                script.use_database(l[1][:-1])   # only gets the database name and removes the ';' from the back
+                script.use_database(l[1][:-1].upper())   # only gets the database name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'CREATE TABLE' in command:
             if size >= 3:  # checks the the minimum amount of arguments are present
                 command = " ".join(l[3:])  # gets all the variables after the table name and converts it into a string
                 command = command[1:-2]  # then slice off the beginning '(' and the ');' at the end
-                script.create_table(l[2], command)  # passes in the name of the table and the sliced variables to input
+                script.create_table(l[2].upper(), command)  # passes in the name of the table and the sliced variables to input
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'SELECT * FROM' in command:
             if size == 4:  # checks if all arguments are present
-                script.select_all(l[3][:-1]) # only gets the table name and removes the ';' from the back
+                script.select_all(l[3][:-1].upper()) # only gets the table name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'ALTER TABLE' in command:
             if size >= 4:  # checks if all arguments are present
                 command = " ".join(l[4:])  # gets all the variables after the table name and converts it into a string
                 command = command[:-1]  # removes the ';' from the back of string
-                script.alter_table(l[2], command)  # passes in the name of table and sting of variables
+                script.alter_table(l[2].upper(), command)  # passes in the name of table and sting of variables
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'INSERT' in command:
-            script.insert_table(l[2],l[3:])
+            script.insert_table(l[2].upper(), l[3:])
         elif 'UPDATE' in command:
-            script.update_table(l[1], l[2:])
+            script.update_table(l[1].upper(), l[2:])
             #print(command)
+        elif 'DELETE' in command:
+            script.delete_items(l[2].upper(), l[3:])
+        elif 'SELECT' in command:
+            from_idx = l.index('from')
+            script.select_specific(l[1:from_idx], l[from_idx+1].upper(), l[from_idx+2:])
         elif '.EXIT' in command:
             return
         else:  # if the command is not recognised it's and unknown command or there is something wring with the syntax
