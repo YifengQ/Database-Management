@@ -190,7 +190,7 @@ class RunScript:
         if os.path.exists(path):  # check if path exists
             res = []
             data = self.read_all(path)  # reads all the current data from the file and stores it in a list
-            for line in data: # reads the lines and splits the data
+            for line in data:  # reads the lines and splits the data
                 res.append(line.split('|'))
 
             new_data = "".join(new_data)[7:-2]  # gets rid of the excess data
@@ -205,8 +205,8 @@ class RunScript:
 
     def update_table(self, table, data):
         """
-        Updates specific value if conditions match. Finds the index of the desired variable. Then it changes the variable
-        that needs to be changed based on the index of the variable that needs to change.
+        Updates specific value if conditions match. Finds the index of the desired variable. Then it changes the
+        variable that needs to be changed based on the index of the variable that needs to change.
         :param table: string with name of the table
         :param data: contains the data to update the table
         :return: None
@@ -247,13 +247,32 @@ class RunScript:
         count = 0  # initiates the count for the number of changes
         where_idx = self.find_idx(curr[0], var2)  # finds the index that needs to found
         set_idx = self.find_idx(curr[0], var)  # finds the index that equates to being changed
+        if operation == '=':
+            operation = '=='
+
         for line in curr[1:]:
-            if line[where_idx] == change:  # if the variable satisfies the condition to change
-                line[set_idx] = changeto  # changed the desired variable that needs to be changed
-                res.append(line)
-                count += 1
+            if operation == '==':
+                if eval('line[where_idx]' + operation + 'change'):  # if the variable satisfies the condition to change
+                    line[set_idx] = changeto  # changed the desired variable that needs to be changed
+                    res.append(line)
+                    count += 1
+                else:
+                    res.append(line)
+            elif operation == '!=':  # checks if operation is not equal because of differences in float and strings
+                if eval('line[where_idx]' + operation + 'change'):  # if the variable satisfies the condition to change
+                    res.append(line)
+                else:
+                    line[set_idx] = changeto  # changed the desired variable that needs to be changed
+                    res.append(line)
+                    count += 1
             else:
-                res.append(line)
+                if eval('float(line[where_idx])' + operation + 'float(change)'):  # <, > can only compare numbers
+                    line[set_idx] = changeto  # changed the desired variable that needs to be changed
+                    res.append(line)
+                    count += 1
+                else:
+                    res.append(line)
+
         return res, count
 
     def delete_items(self, table, data):
@@ -360,7 +379,7 @@ class RunScript:
         :return: return the list that needs to be inputted into the file
         """
         res = []
-        data, count = self.delete_helper(path, obj, op, w)  # calls helper to delete specific rows that satisfy condition
+        data, count = self.delete_helper(path, obj, op, w)  # delete specific rows that satisfy condition
         for line in data:
             new = "| ".join(line)
             res.append(new.split('| '))
