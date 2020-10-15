@@ -16,7 +16,8 @@ script = RunScript()
 def read_file():
     """
     Opens the file with standard input, and reads every line and checks if it is a valid command to be
-    appended to the list
+    appended to the list. If the command is on multiple lines then it will save it in a temp variable until
+    it can find a semicolon.
     :return: Returns a List of the Commands
     """
     commands = []
