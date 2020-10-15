@@ -111,6 +111,7 @@ def run_commands():
             from_idx = l.index('from')
             script.select_specific(l[1:from_idx], l[from_idx+1].upper(), l[from_idx+2:])
         elif '.EXIT' in command:
+            print('All Done')
             return
         else:  # if the command is not recognised it's and unknown command or there is something wring with the syntax
             print('Syntax Error | Unknown Command')
