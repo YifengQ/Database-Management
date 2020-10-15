@@ -2,8 +2,8 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 1"
-__date__ = "9/15/2020"
+__assignment__ = "Project 2"
+__date__ = "10/15/20"
 
 import os
 import re
@@ -359,8 +359,8 @@ class RunScript:
                 if v not in var:  # checks if the variable needs to be seen
                     missing.append(v)
             res = self.select_specific_helper(path, missing, data, obj, op, w)  # calls helper to delete rows and cols
-            self.insert_helper(path, res)  # calls helper to print to the file
-            self.select_all(table)  # prints all of the new data to the terminal
+            for line in res:
+                print("|".join(line))
         else:
             output = '!Failed to select items in table ' + table + ' because it does not exist.'
             print(output)

@@ -2,8 +2,8 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 1"
-__date__ = "9/15/2020"
+__assignment__ = "Project 2"
+__date__ = "10/15/20"
 
 import re
 import sys
@@ -13,42 +13,48 @@ from run_script import RunScript
 script = RunScript()
 
 
-# def read_file():
-#     """
-#     Opens the file with standard input, and reads every line and checks if it is a valid command to be
-#     appended to the list
-#     :return: Returns a List of the Commands
-#     """
-#     commands = []
-#     for line in sys.stdin:
-#         if line == '\r\n' or line[0:2] == '--':  # checks if it is a empty new line or it starts with '--'
-#             continue
-#         else:
-#             commands.append(line.rstrip())  # removes newline and special characters from line to append to list
-#
-#     return commands
-
 def read_file():
     """
     Opens the file with standard input, and reads every line and checks if it is a valid command to be
     appended to the list
     :return: Returns a List of the Commands
     """
-    with open("PA2_test.sql") as file_in:
-        commands = []
-        temp = []
-        for line in file_in:
-            if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
-                continue
+    commands = []
+    temp = []
+    for line in sys.stdin:
+        if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+            continue
+        else:
+            if ';' not in line:
+                temp.append(line.rstrip()+' ')
             else:
-                if ';' not in line:
-                    temp.append(line.rstrip()+' ')
-                else:
-                    temp = "".join(temp)
-                    line = re.sub(r"[\n\t]*", "", line)
-                    commands.append(temp + line.rstrip())  # removes newline and special characters from line to append to list
-                    temp = []
+                temp = "".join(temp)
+                line = re.sub(r"[\n\t]*", "", line)  # removes random special characters like tabs
+                commands.append(temp + line.rstrip())  # removes newline from line to append to list
+                temp = []
     return commands
+
+# def read_file():
+#     """
+#     Opens the file with standard input, and reads every line and checks if it is a valid command to be
+#     appended to the list
+#     :return: Returns a List of the Commands
+#     """
+#     with open("PA2_test.sql") as file_in:
+#         commands = []
+#         temp = []
+#         for line in file_in:
+#             if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+#                 continue
+#             else:
+#                 if ';' not in line:
+#                     temp.append(line.rstrip()+' ')
+#                 else:
+#                     temp = "".join(temp)
+#                     line = re.sub(r"[\n\t]*", "", line)
+#                     commands.append(temp + line.rstrip())
+#                     temp = []
+#     return commands
 
 def run_commands():
     """
@@ -101,15 +107,26 @@ def run_commands():
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'INSERT' in command:
-            script.insert_table(l[2].upper(), l[3:])
+            if size >= 5:  # checks if all arguments are present
+                script.insert_table(l[2].upper(), l[3:])
+            else:
+                print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'UPDATE' in command:
-            script.update_table(l[1].upper(), l[2:])
-            #print(command)
+            if size >= 8:  # checks if the minimum amount of variables are present
+                script.update_table(l[1].upper(), l[2:])
+            else:
+                print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'DELETE' in command:
-            script.delete_items(l[2].upper(), l[3:])
+            if size >= 7:  # checks if the minimum amount of variables are present
+                script.delete_items(l[2].upper(), l[3:])
+            else:
+                print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'SELECT' in command:
-            from_idx = l.index('from')
-            script.select_specific(l[1:from_idx], l[from_idx+1].upper(), l[from_idx+2:])
+            if size >= 7:  # checks if the minimum amount of variables are present
+                from_idx = l.index('from')
+                script.select_specific(l[1:from_idx], l[from_idx+1].upper(), l[from_idx+2:])
+            else:
+                print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif '.EXIT' in command:
             print('All Done')
             return
