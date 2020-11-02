@@ -13,49 +13,49 @@ from run_script import RunScript
 script = RunScript()
 
 
-def read_file():
-    """
-    Opens the file with standard input, and reads every line and checks if it is a valid command to be
-    appended to the list. If the command is on multiple lines then it will save it in a temp variable until
-    it can find a semicolon.
-    :return: Returns a List of the Commands
-    """
-    commands = []
-    temp = []
-    for line in sys.stdin:
-        if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
-            continue
-        else:
-            if ';' not in line:
-                temp.append(line.rstrip()+' ')
-            else:
-                temp = "".join(temp)
-                line = re.sub(r"[\n\t]*", "", line)  # removes random special characters like tabs
-                commands.append(temp + line.rstrip())  # removes newline from line to append to list
-                temp = []
-    return commands
-
 # def read_file():
 #     """
 #     Opens the file with standard input, and reads every line and checks if it is a valid command to be
-#     appended to the list
+#     appended to the list. If the command is on multiple lines then it will save it in a temp variable until
+#     it can find a semicolon.
 #     :return: Returns a List of the Commands
 #     """
-#     with open("PA2_test.sql") as file_in:
-#         commands = []
-#         temp = []
-#         for line in file_in:
-#             if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
-#                 continue
+#     commands = []
+#     temp = []
+#     for line in sys.stdin:
+#         if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+#             continue
+#         else:
+#             if ';' not in line:
+#                 temp.append(line.rstrip()+' ')
 #             else:
-#                 if ';' not in line:
-#                     temp.append(line.rstrip()+' ')
-#                 else:
-#                     temp = "".join(temp)
-#                     line = re.sub(r"[\n\t]*", "", line)
-#                     commands.append(temp + line.rstrip())
-#                     temp = []
+#                 temp = "".join(temp)
+#                 line = re.sub(r"[\n\t]*", "", line)  # removes random special characters like tabs
+#                 commands.append(temp + line.rstrip())  # removes newline from line to append to list
+#                 temp = []
 #     return commands
+
+def read_file():
+    """
+    Opens the file with standard input, and reads every line and checks if it is a valid command to be
+    appended to the list
+    :return: Returns a List of the Commands
+    """
+    with open("PA3_test.sql") as file_in:
+        commands = []
+        temp = []
+        for line in file_in:
+            if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+                continue
+            else:
+                if ';' not in line:
+                    temp.append(line.rstrip()+' ')
+                else:
+                    temp = "".join(temp)
+                    line = re.sub(r"[\n\t]*", "", line)
+                    commands.append(temp + line.rstrip())
+                    temp = []
+    return commands
 
 def run_commands():
     """
@@ -89,15 +89,17 @@ def run_commands():
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'CREATE TABLE' in command:
+            command = " ".join(l)
+            idx = command.index('(')
+            var = command[idx:]
+            temp = command[:idx].split(' ')
             if size >= 3:  # checks the the minimum amount of arguments are present
-                command = " ".join(l[3:])  # gets all the variables after the table name and converts it into a string
-                command = command[1:-2]  # then slice off the beginning '(' and the ');' at the end
-                script.create_table(l[2].upper(), command)  # passes in the name of and the sliced variables to input
+                script.create_table(temp[-1].upper(), var[1:-2])  # passes in the name of and the sliced variables to input
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'SELECT * FROM' in command:
-            if size == 4:  # checks if all arguments are present
-                script.select_all(l[3][:-1].upper()) # only gets the table name and removes the ';' from the back
+            if size >= 4:  # checks if all arguments are present
+                script.select_all(l[3].upper(), l[3:]) # only gets the table name and removes the ';' from the back
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'ALTER TABLE' in command:
@@ -108,8 +110,12 @@ def run_commands():
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'INSERT' in command:
-            if size >= 5:  # checks if all arguments are present
-                script.insert_table(l[2].upper(), l[3:])
+            command = " ".join(l)
+            idx = command.index('(')
+            var = command[idx:]
+            temp = command[:idx].split(' ')
+            if size >= 4:  # checks if all arguments are present
+                script.insert_table(temp[-2].upper(), var[1:-2])
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'UPDATE' in command:

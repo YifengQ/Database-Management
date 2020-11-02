@@ -7,6 +7,7 @@ __date__ = "10/15/20"
 
 import os
 import re
+import collections
 
 
 class RunScript:
@@ -90,20 +91,30 @@ class RunScript:
             output = 'Table ' + tbl + ' created.'
             print(output)
 
-    def select_all(self, table):
+    def select_all(self, table, inp):
         """
         Checks if the table exists and then reads all the data from the file and prints it out.
         :param table: String that contains name of the table
         :return:
         """
         data = []
+        tbls = []
+        tbls_alias = []
+        d = collections.defaultdict(list)
         path = os.path.join(self.dbDir, table)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
-            with open(path) as file_in:  # starts reading from file
-                for line in file_in:
-                    data.append(line.rstrip())
-            for line in data:  # prints data to terminal
-                print(line)
+            print(inp)
+            where_idx = inp.index('where')
+            new = " ".join(inp[:where_idx])
+            new = new.split(',')
+            for t in new:
+                temp = t.split(' ')
+                tbls.append(temp[-2].upper())
+                tbls_alias.append(temp[-1])
+            for i, tbl in enumerate(tbls):
+                path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
+                d[tbls_alias[i]] = self.read_all(path)
+            print(d)
         else:
             output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
@@ -193,7 +204,6 @@ class RunScript:
             for line in data:  # reads the lines and splits the data
                 res.append(line.split('|'))
 
-            new_data = "".join(new_data)[7:-2]  # gets rid of the excess data
             new_data = new_data.split(',')  # splits the data on commas
             res.append(new_data)  # adds the new list to the rest of the data
             self.insert_helper(path, res)  # calls the helper function to print the data to the file
