@@ -26,3 +26,5 @@ Example:
 python3 main.py < PA2_test.sql
 
 Script Folder contains test script I ran.
+designdoc2 is for this project design document
+File.IO.py is for my testing, not related to project

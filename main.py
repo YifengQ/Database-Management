@@ -92,7 +92,7 @@ def run_commands():
             if size >= 3:  # checks the the minimum amount of arguments are present
                 command = " ".join(l[3:])  # gets all the variables after the table name and converts it into a string
                 command = command[1:-2]  # then slice off the beginning '(' and the ');' at the end
-                script.create_table(l[2].upper(), command)  # passes in the name of the table and the sliced variables to input
+                script.create_table(l[2].upper(), command)  # passes in the name of and the sliced variables to input
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'SELECT * FROM' in command:
