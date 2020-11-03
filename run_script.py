@@ -77,7 +77,7 @@ class RunScript:
         :param inp: Contains all the data that will be entered into the table
         :return: None
         """
-        path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
+        path = os.path.join(self.dbDir, tbl.upper())  # joins cwd and db name
         if os.path.exists(path):   # check if path exists
             output = '!Failed to create table ' + tbl + ' because it already exists.'
             print(output)
@@ -97,27 +97,52 @@ class RunScript:
         :param table: String that contains name of the table
         :return:
         """
-        data = []
         tbls = []
         tbls_alias = []
+
         d = collections.defaultdict(list)
         path = os.path.join(self.dbDir, table)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
-            print(inp)
             where_idx = inp.index('where')
             new = " ".join(inp[:where_idx])
             new = new.split(',')
-            for t in new:
-                temp = t.split(' ')
+            for i, t in enumerate(new):
+                temp = t.split(' ')  # splits the table names to name and alias
                 tbls.append(temp[-2].upper())
-                tbls_alias.append(temp[-1])
-            for i, tbl in enumerate(tbls):
-                path = os.path.join(self.dbDir, tbl)  # joins cwd and db name
-                d[tbls_alias[i]] = self.read_all(path)
-            print(d)
+                tbls_alias.append(temp[-1])  # stores alias in list
+                path = os.path.join(self.dbDir, tbls[i])  # joins cwd and tbl name
+                d[tbls_alias[i]] = self.read_all(path)  # stores table data into a dictionary key = alias, value = data
+            logic = inp[where_idx + 1:]  # contains the rest of the logic comparisons
+            res = self.join_helper(d, logic, tbls_alias)  # calls helper to combine tables, returns result
+            for line in res:
+                print(line)
         else:
             output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
+
+    def join_helper(self, d, logic, tbls_alias):
+
+        rows = len(d[tbls_alias[1]])  # number of rows in the table
+        cols = len(d[tbls_alias[1]][0])  # number of cols in the table
+        cols_names = [None] * cols  # initialize list for col names
+        cols_id = [0] * cols  # initialize list for col id's
+        cols_names[0] = logic[0].split('.')[-1]  # since only two comparisons get the name of the col name
+        cols_names[1] = logic[-1].split('.')[-1][:-1]  # since only two comparisons get the name of the col name
+        var = ""
+        for i, c in enumerate(cols_names):
+            cols_id[i] = self.find_idx(d[tbls_alias[i]][0].split(' |'), c)  # gets the col num of the var to compare
+            var += d[tbls_alias[i]][0]  # joins the two tables variables together
+            if i != cols - 1:
+                var += ' |'
+        res = [var]  # initialize result with variable names
+        for i in range(1, rows):  # compare all the rows and if the variables being compared match join them together
+            for j in range(1, rows):
+                d1 = d[tbls_alias[0]][i]
+                d2 = d[tbls_alias[1]][j]
+                if d1.split('|')[cols_id[0]] == d2.split('|')[cols_id[1]]:  # compare variables
+                    res.append(d1 + '|' + d2)
+        return res
+
 
     def alter_table(self, tbl, inp):
         """

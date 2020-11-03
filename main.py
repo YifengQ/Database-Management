@@ -94,7 +94,7 @@ def run_commands():
             var = command[idx:]
             temp = command[:idx].split(' ')
             if size >= 3:  # checks the the minimum amount of arguments are present
-                script.create_table(temp[-1].upper(), var[1:-2])  # passes in the name of and the sliced variables to input
+                script.create_table(temp[-1], var[1:-2])  # passes in the name of and the sliced variables to input
             else:
                 print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
         elif 'SELECT * FROM' in command:
