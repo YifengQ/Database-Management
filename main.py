@@ -2,8 +2,8 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 2"
-__date__ = "10/15/20"
+__assignment__ = "Project 3"
+__date__ = "11/02/20"
 
 import re
 import sys
@@ -48,7 +48,10 @@ def read_file():
             if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
                 continue
             else:
-                if ';' not in line:
+                if '.exit' in line:
+                    commands.append(line.rstrip())
+                    break
+                elif ';' not in line:
                     temp.append(line.rstrip()+' ')
                 else:
                     temp = "".join(temp)

@@ -2,8 +2,8 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 2"
-__date__ = "10/15/20"
+__assignment__ = "Project 3"
+__date__ = "11/02/20"
 
 import os
 import re
@@ -95,17 +95,31 @@ class RunScript:
         """
         Checks if the table exists and then reads all the data from the file and prints it out.
         :param table: String that contains name of the table
-        :return:
+        :param inp:
+        :return: Check tables first * Notes
         """
         tbls = []
         tbls_alias = []
-
+        cmd = " ".join(inp)
         d = collections.defaultdict(list)
         path = os.path.join(self.dbDir, table)  # joins cwd and db name
         if os.path.exists(path):  # check if path exists
-            where_idx = inp.index('where')
-            new = " ".join(inp[:where_idx])
+            if 'inner join' in cmd:
+                where_idx = inp.index('on')
+                new = " ".join(inp[:where_idx])
+                new = new.replace(' inner join', ',')
+                type = 'inner join'
+            elif 'left outer' in cmd:
+                where_idx = inp.index('on')
+                new = " ".join(inp[:where_idx])
+                new = new.replace(' left outer', ',')
+                type = 'left outer'
+            else:
+                where_idx = inp.index('where')
+                new = " ".join(inp[:where_idx])
+                type = 'equal'
             new = new.split(',')
+
             for i, t in enumerate(new):
                 temp = t.split(' ')  # splits the table names to name and alias
                 tbls.append(temp[-2].upper())
@@ -113,17 +127,17 @@ class RunScript:
                 path = os.path.join(self.dbDir, tbls[i])  # joins cwd and tbl name
                 d[tbls_alias[i]] = self.read_all(path)  # stores table data into a dictionary key = alias, value = data
             logic = inp[where_idx + 1:]  # contains the rest of the logic comparisons
-            res = self.join_helper(d, logic, tbls_alias)  # calls helper to combine tables, returns result
+            res = self.join_helper(d, logic, tbls_alias, type)  # calls helper to combine tables, returns result
             for line in res:
                 print(line)
         else:
             output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
 
-    def join_helper(self, d, logic, tbls_alias):
+    def join_helper(self, d, logic, tbls_alias, type):
 
         rows = len(d[tbls_alias[1]])  # number of rows in the table
-        cols = len(d[tbls_alias[1]][0])  # number of cols in the table
+        cols = len(d)  # number of cols in the table
         cols_names = [None] * cols  # initialize list for col names
         cols_id = [0] * cols  # initialize list for col id's
         cols_names[0] = logic[0].split('.')[-1]  # since only two comparisons get the name of the col name
@@ -135,6 +149,15 @@ class RunScript:
             if i != cols - 1:
                 var += ' |'
         res = [var]  # initialize result with variable names
+        if type == 'inner join' or type == 'equal':
+            res = self.inner_join(rows, res, d, tbls_alias, cols_id)
+        else:
+            res = self.outer_join(rows, res, d, tbls_alias, cols_id)
+
+        return res
+
+    @staticmethod
+    def inner_join(rows, res, d, tbls_alias, cols_id):
         for i in range(1, rows):  # compare all the rows and if the variables being compared match join them together
             for j in range(1, rows):
                 d1 = d[tbls_alias[0]][i]
@@ -143,6 +166,19 @@ class RunScript:
                     res.append(d1 + '|' + d2)
         return res
 
+    @staticmethod
+    def outer_join(rows, res, d, tbls_alias, cols_id):
+        for i in range(1, rows):  # compare all the rows and if the variables being compared match join them together
+            found = False
+            for j in range(1, rows):
+                d1 = d[tbls_alias[0]][i]
+                d2 = d[tbls_alias[1]][j]
+                if d1.split('|')[cols_id[0]] == d2.split('|')[cols_id[1]]:  # compare variables
+                    res.append(d1 + '|' + d2)
+                    found = True
+            if not found:
+                res.append(d[tbls_alias[0]][i] + '|' * len(cols_id))
+        return res
 
     def alter_table(self, tbl, inp):
         """
@@ -200,7 +236,8 @@ class RunScript:
             output = '!Failed to query table because it does not exist.'
             print(output)
 
-    def insert_helper(self, path, inp):
+    @staticmethod
+    def insert_helper(path, inp):
         """
         Helper that writes the new list of values to the file
         :param path: Path that leads to the table file
@@ -393,21 +430,20 @@ class RunScript:
             for v in variables:
                 if v not in var:  # checks if the variable needs to be seen
                     missing.append(v)
-            res = self.select_specific_helper(path, missing, data, obj, op, w)  # calls helper to delete rows and cols
+            res = self.select_specific_helper(path, missing, obj, op, w)  # calls helper to delete rows and cols
             for line in res:
                 print("|".join(line))
         else:
             output = '!Failed to select items in table ' + table + ' because it does not exist.'
             print(output)
 
-    def select_specific_helper(self, path, missing, data, obj, op, w):
+    def select_specific_helper(self, path, missing, obj, op, w):
         """
         It will call the delete helper to get rid of rows that don't have the specific value.
         Finds the missing values that are not needed to be displayed. It will delete those columns that are not
         needed.
         :param path: String with Path to the table
         :param missing: Contains the list of values you want
-        :param data: list that has the data from the file
         :param obj: the object that wants to be found
         :param op: the logic operator
         :param w: the values that needs to be compared with the operator
@@ -424,7 +460,8 @@ class RunScript:
                 del line[where_idx]  # deletes the column from all the lines
         return res
 
-    def read_all_list(self, data):
+    @staticmethod
+    def read_all_list(data):
         """
         Turns a string into a list
         :param data: Data with strings in list
@@ -435,7 +472,8 @@ class RunScript:
             curr.append(line.split('|'))
         return curr
 
-    def get_curr_var(self, data):
+    @staticmethod
+    def get_curr_var(data):
         """
         Splits the input data and removes commas in list leaving only the variable names
         :param data: List of data from the file
@@ -449,7 +487,8 @@ class RunScript:
             res.append(s[0])
         return res
 
-    def find_idx(self, inp, var):
+    @staticmethod
+    def find_idx(inp, var):
         for i in range(len(inp)):
             if var in inp[i]:
                 return i
