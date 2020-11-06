@@ -102,40 +102,42 @@ class RunScript:
         tbls_alias = []
         cmd = " ".join(inp)
         d = collections.defaultdict(list)
-        path = os.path.join(self.dbDir, table)  # joins cwd and db name
-        if os.path.exists(path):  # check if path exists
-            if 'inner join' in cmd:
-                where_idx = inp.index('on')
-                new = " ".join(inp[:where_idx])
-                new = new.replace(' inner join', ',')
-                type = 'inner join'
-            elif 'left outer' in cmd:
-                where_idx = inp.index('on')
-                new = " ".join(inp[:where_idx])
-                new = new.replace(' left outer', ',')
-                type = 'left outer'
-            else:
-                where_idx = inp.index('where')
-                new = " ".join(inp[:where_idx])
-                type = 'equal'
-            new = new.split(',')
 
-            for i, t in enumerate(new):
-                temp = t.split(' ')  # splits the table names to name and alias
-                tbls.append(temp[-2].upper())
-                tbls_alias.append(temp[-1])  # stores alias in list
-                path = os.path.join(self.dbDir, tbls[i])  # joins cwd and tbl name
-                d[tbls_alias[i]] = self.read_all(path)  # stores table data into a dictionary key = alias, value = data
-            logic = inp[where_idx + 1:]  # contains the rest of the logic comparisons
-            res = self.join_helper(d, logic, tbls_alias, type)  # calls helper to combine tables, returns result
-            for line in res:
-                print(line)
+        if 'inner join' in cmd:
+            where_idx = inp.index('on')
+            new = " ".join(inp[:where_idx])
+            new = new.replace(' inner join', ',')
+            type = 'inner join'
+        elif 'left outer' in cmd:
+            where_idx = inp.index('on')
+            new = " ".join(inp[:where_idx])
+            new = new.replace(' left outer', ',')
+            type = 'left outer'
         else:
-            output = '!Failed to query table ' + table + ' because it does not exist.'
-            print(output)
+            where_idx = inp.index('where')
+            new = " ".join(inp[:where_idx])
+            type = 'equal'
+        new = new.split(',')
+
+        for i, t in enumerate(new):
+            temp = t.split(' ')  # splits the table names to name and alias
+            tbls.append(temp[-2].upper())
+            tbls_alias.append(temp[-1])  # stores alias in list
+            path = os.path.join(self.dbDir, tbls[i])  # joins cwd and tbl name
+            if os.path.exists(path):
+                d[tbls_alias[i]] = self.read_all(path)  # stores table data into a dictionary key = alias, value = data
+            else:
+                print('!Failed to query table ' + table + ' because it does not exist.')
+                return
+        logic = inp[where_idx + 1:]  # contains the rest of the logic comparisons
+        res = self.join_helper(d, logic, tbls_alias, type)  # calls helper to combine tables, returns result
+        for line in res:
+            print(line)
 
     def join_helper(self, d, logic, tbls_alias, type):
-
+        """
+        Helps the table by separating the values and then determining which function it should call.
+        """
         rows = len(d[tbls_alias[1]])  # number of rows in the table
         cols = len(d)  # number of cols in the table
         cols_names = [None] * cols  # initialize list for col names
@@ -158,6 +160,9 @@ class RunScript:
 
     @staticmethod
     def inner_join(rows, res, d, tbls_alias, cols_id):
+        """
+        Will perform the inner join by concatinating all the values that match the logic operation
+        """
         for i in range(1, rows):  # compare all the rows and if the variables being compared match join them together
             for j in range(1, rows):
                 d1 = d[tbls_alias[0]][i]
@@ -168,11 +173,14 @@ class RunScript:
 
     @staticmethod
     def outer_join(rows, res, d, tbls_alias, cols_id):
+        """
+        Will perform the inner join by concatinating all the values that match the logic operation
+        """
         for i in range(1, rows):  # compare all the rows and if the variables being compared match join them together
-            found = False
+            found = False  # determines if they found a match
             for j in range(1, rows):
-                d1 = d[tbls_alias[0]][i]
-                d2 = d[tbls_alias[1]][j]
+                d1 = d[tbls_alias[0]][i]  # gets the data in the first table
+                d2 = d[tbls_alias[1]][j]  # gets the data in the second table
                 if d1.split('|')[cols_id[0]] == d2.split('|')[cols_id[1]]:  # compare variables
                     res.append(d1 + '|' + d2)
                     found = True

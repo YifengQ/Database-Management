@@ -13,52 +13,56 @@ from run_script import RunScript
 script = RunScript()
 
 
-# def read_file():
-#     """
-#     Opens the file with standard input, and reads every line and checks if it is a valid command to be
-#     appended to the list. If the command is on multiple lines then it will save it in a temp variable until
-#     it can find a semicolon.
-#     :return: Returns a List of the Commands
-#     """
-#     commands = []
-#     temp = []
-#     for line in sys.stdin:
-#         if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
-#             continue
-#         else:
-#             if ';' not in line:
-#                 temp.append(line.rstrip()+' ')
-#             else:
-#                 temp = "".join(temp)
-#                 line = re.sub(r"[\n\t]*", "", line)  # removes random special characters like tabs
-#                 commands.append(temp + line.rstrip())  # removes newline from line to append to list
-#                 temp = []
-#     return commands
-
 def read_file():
     """
     Opens the file with standard input, and reads every line and checks if it is a valid command to be
-    appended to the list
+    appended to the list. If the command is on multiple lines then it will save it in a temp variable until
+    it can find a semicolon.
     :return: Returns a List of the Commands
     """
-    with open("PA3_test.sql") as file_in:
-        commands = []
-        temp = []
-        for line in file_in:
-            if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
-                continue
+    commands = []
+    temp = []
+    for line in sys.stdin:
+        if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+            continue
+        else:
+            if '.exit' in line:
+                commands.append(line.rstrip())
+                break
+            elif ';' not in line:
+                temp.append(line.rstrip()+' ')
             else:
-                if '.exit' in line:
-                    commands.append(line.rstrip())
-                    break
-                elif ';' not in line:
-                    temp.append(line.rstrip()+' ')
-                else:
-                    temp = "".join(temp)
-                    line = re.sub(r"[\n\t]*", "", line)
-                    commands.append(temp + line.rstrip())
-                    temp = []
+                temp = "".join(temp)
+                line = re.sub(r"[\n\t]*", "", line)  # removes random special characters like tabs
+                commands.append(temp + line.rstrip())  # removes newline from line to append to list
+                temp = []
     return commands
+
+# def read_file():
+#     """
+#     Opens the file with standard input, and reads every line and checks if it is a valid command to be
+#     appended to the list
+#     :return: Returns a List of the Commands
+#     """
+#     with open("PA3_test.sql") as file_in:
+#         commands = []
+#         temp = []
+#         for line in file_in:
+#             if line == '\r\n' or line == '\n' or line[0:2] == '--':  # checks if it is a relevant line to read
+#                 continue
+#             else:
+#                 if '.exit' in line:
+#                     commands.append(line.rstrip())
+#                     break
+#                 elif ';' not in line:
+#                     temp.append(line.rstrip()+' ')
+#                 else:
+#                     temp = "".join(temp)
+#                     line = re.sub(r"[\n\t]*", "", line)
+#                     commands.append(temp + line.rstrip())
+#                     temp = []
+#     return commands
+
 
 def run_commands():
     """
