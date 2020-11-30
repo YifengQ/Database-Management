@@ -2,12 +2,13 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 3"
-__date__ = "11/02/20"
+__assignment__ = "Project 4"
+__date__ = "11/29/20"
 
 import os
 import re
 import collections
+from shutil import copyfile
 
 
 class RunScript:
@@ -18,7 +19,10 @@ class RunScript:
         """
         self.parentDir = os.getcwd()
         self.dbDir = None
+        self.currTable = None
         self.data = []
+        self.lock = False
+        self.lockedTables = []
 
     def create_database(self, db):
         """
@@ -83,12 +87,32 @@ class RunScript:
             print(output)
         else:
             os.mknod(path)  # creates file system of path
+            self.currTable = tbl.upper()
             out = inp.split(',')
             out = "|".join(out)
             f = open(path, "a")  # opens file
             f.write(out)  # write to file
             f.close()  # close file
             output = 'Table ' + tbl + ' created.'
+            print(output)
+
+    def select_all_no_condition(self, table):
+        """
+        Checks if the table exists and then reads all the data from the file and prints it out.
+        :param table: String that contains name of the table
+        :return:
+        """
+        self.data = []
+        path = os.path.join(self.dbDir, table)  # joins cwd and db name
+        if os.path.exists(path):  # check if path exists
+            with open(path) as file_in:  # starts reading from file
+                for line in file_in:
+                    self.data.append(line.rstrip())
+            for line in self.data:  # prints data to terminal
+                print(line)
+            self.data = []
+        else:
+            output = '!Failed to query table ' + table + ' because it does not exist.'
             print(output)
 
     def select_all(self, table, inp):
@@ -117,6 +141,7 @@ class RunScript:
             where_idx = inp.index('where')
             new = " ".join(inp[:where_idx])
             type = 'equal'
+
         new = new.split(',')
 
         for i, t in enumerate(new):
@@ -468,6 +493,46 @@ class RunScript:
                 del line[where_idx]  # deletes the column from all the lines
         return res
 
+    def transaction(self):
+
+        print('Transaction starts.')
+        self.get_locked()
+        path = None
+        lock_path = None
+
+        self.lock = True
+        while self.lock:
+            command = self.get_input()
+            command = re.sub(r"[\n\t]*", "", command)  # removes random special characters like tabs
+            l = command.split(' ')  # splits the string command into a list based on spaces
+            command = command.upper()  # converts the command to all uppercase so it can cover case sensitivity
+            size = len(l)  # gets length to handle missing spaces
+
+            if 'UPDATE' in command:
+                if size >= 8:  # checks if the minimum amount of variables are present
+                    tbl = l[1]
+                    if tbl.upper() in self.lockedTables:
+                        print('Error: Table ' + l[1] + ' is locked!')
+                        return
+                    path = os.path.join(self.dbDir, tbl.upper())
+                    lock_path = os.path.join(self.dbDir, tbl.upper() + '_LOCK')
+                    copyfile(path, lock_path)
+                    self.update_table(tbl.upper() + '_LOCK', l[2:])
+                else:
+                    print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
+            elif 'COMMIT' in command:
+                self.commit(path, lock_path)
+                self.lock = False
+            else:
+                print('Syntax Error: Not a Update Command | ', command)
+        return
+
+    @staticmethod
+    def commit(path, lock_path):
+        copyfile(lock_path, path)
+        os.remove(lock_path)  # deletes the locked path
+        print("Transaction committed.")
+
     @staticmethod
     def read_all_list(data):
         """
@@ -501,3 +566,17 @@ class RunScript:
             if var in inp[i]:
                 return i
         return -1
+
+    @staticmethod
+    def get_input():
+        command = input('Enter Update or Commit Command: ')
+        if '--' in command:  # removes comments at end of line
+            command = command[:command.index('--')-1]
+        return command
+
+    def get_locked(self):
+        arr = os.listdir(self.dbDir)
+        for tbl in arr:
+            if 'LOCK' in tbl:
+                self.lockedTables.append(tbl[:-5])
+

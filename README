@@ -2,8 +2,8 @@ __author__ = "Yifeng Qin"
 __class__ = "CS457 Database Management Systems"
 __instructor__ = "Dongfang Zhao"
 __university__ = "University of Nevada Reno"
-__assignment__ = "Project 2"
-__date__ = "10/25/20"
+__assignment__ = "Project 3"
+__date__ = "11/05/20"
 
 +++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -15,6 +15,7 @@ Imported Libraries:
 os
 sys
 re
+collections
 
 Runs with Standard Input
 Place file in parent folder
@@ -23,7 +24,7 @@ Change directory to parent folder
 python3 main.py < "script_name"
 
 Example:
-python3 main.py < PA2_test.sql
+python3 main.py < PA3_test.sql
 
 Script Folder contains test script I ran.
 designdoc2 is for this project design document
