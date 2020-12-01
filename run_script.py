@@ -494,14 +494,23 @@ class RunScript:
         return res
 
     def transaction(self):
-
+        """
+        Starts the transaction and waits for and update command or commit command. Any other command is not viable with
+        in the transaction because it does no modifications. If the command is update it will create a file that is a
+        locked version of the table. To make sure we don't update in a different process we will get all the tables
+        that are locked by reading all the names in the directory to get all the names of the locked files. So if a table
+        is currently locked and you want to update it, it will not let you. If you commit and there is more then one
+        transaction it will take that locked file and overwrite the original file. Then delete the locked file. If there
+        is no update and a commit it will abort.
+        :return:
+        """
         print('Transaction starts.')
         self.get_locked()
         path = None
         lock_path = None
-
+        count = 0
         self.lock = True
-        while self.lock:
+        while self.lock:  # keeps running if more then one command
             command = self.get_input()
             command = re.sub(r"[\n\t]*", "", command)  # removes random special characters like tabs
             l = command.split(' ')  # splits the string command into a list based on spaces
@@ -511,16 +520,20 @@ class RunScript:
             if 'UPDATE' in command:
                 if size >= 8:  # checks if the minimum amount of variables are present
                     tbl = l[1]
-                    if tbl.upper() in self.lockedTables:
+                    if tbl.upper() in self.lockedTables:  # checks if table is locked
                         print('Error: Table ' + l[1] + ' is locked!')
                         return
-                    path = os.path.join(self.dbDir, tbl.upper())
-                    lock_path = os.path.join(self.dbDir, tbl.upper() + '_LOCK')
-                    copyfile(path, lock_path)
-                    self.update_table(tbl.upper() + '_LOCK', l[2:])
+                    count += 1
+                    path = os.path.join(self.dbDir, tbl.upper())  # gets path to the table
+                    lock_path = os.path.join(self.dbDir, tbl.upper() + '_LOCK')  # creates a table that is locked
+                    copyfile(path, lock_path)  # copy over the data from original table to locked
+                    self.update_table(tbl.upper() + '_LOCK', l[2:])  # update the locked table
                 else:
                     print('Syntax Error:', command)  # if size does not match there has to be a syntax error with cmd
             elif 'COMMIT' in command:
+                if count == 0:
+                    print('Transaction abort.')
+                    return
                 self.commit(path, lock_path)
                 self.lock = False
             else:
@@ -529,7 +542,13 @@ class RunScript:
 
     @staticmethod
     def commit(path, lock_path):
-        copyfile(lock_path, path)
+        """
+        When commit command seen, will copy over data from locked table to original table
+        :param path:
+        :param lock_path:
+        :return:
+        """
+        copyfile(lock_path, path)  # copies locked file data over to original table
         os.remove(lock_path)  # deletes the locked path
         print("Transaction committed.")
 
