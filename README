@@ -1,0 +1,91 @@
+__author__ = "Yifeng Qin"
+__class__ = "CS457 Database Management Systems"
+__instructor__ = "Dongfang Zhao"
+__university__ = "University of Nevada Reno"
+__assignment__ = "Project 4"
+__date__ = "11/29/20"
+
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Python Version 3.7.4
+Pop!_OS 20.04 LTS
+IDE: PyCharm Professional 2020.1.4
+
+Imported Libraries:
+os
+sys
+re
+collections
+shutil  # to copy files
+
+Script Folder contains test script I ran.
+designdoc4 is for this project design document
+Included an example output for the whole test script  assignment4_exampleoutput.png
+
+Run:
+Changed to run with single line commands from command line.
+Meaning every SQL command should be entered one line at a time.
+The two processes should be by two separate terminals
+Start the application in both terminals by using python3 main.py
+Should prompt you to enter commands, make command is ran
+To test the SQL script given to us all the commands on the first P1 chunk should be ran first
+Then all the commands in the first P2 chunk should be ran in the other terminal
+Then switch back to the first terminal to run the second chunk of P1 commands
+Then switch back to the second terminal to run the second chunk of P2 commands
+Run .exit in both terminals to terminate program
+
+
+Example: IN ORDER OF TERMINALS AND COMMANDS INPUTS (DOES NOT SHOW PRINT STATEMENTS FOR EACH COMMAND RAN)
+### TERMINAL 1 ####
+python3 main.py
+CREATE DATABASE CS457_PA4;
+USE CS457_PA4;
+create table Flights(seat int, status int);
+insert into Flights values(22,0); -- seat 22 is available
+insert into Flights values(23,1); -- seat 23 is occupied
+begin transaction;
+update flights set status = 1 where seat = 22;
+
+### TERMINAL 2 ####
+USE CS457_PA4;
+select * from Flights;
+begin transaction;
+update flights set status = 1 where seat = 22;
+commit; --there should be nothing to commit; it's an "abort"
+select * from Flights;
+
+### TERMINAL 1 ####
+commit; --persist the change to disk
+select * from Flights;
+
+### TERMINAL 2 ####
+select * from Flights;
+
+
+
+
+
+########################### Explanation of Chunks #####################
+-- On P1: (Chunk 1)
+CREATE DATABASE CS457_PA4;
+USE CS457_PA4;
+create table Flights(seat int, status int);
+insert into Flights values(22,0); -- seat 22 is available
+insert into Flights values(23,1); -- seat 23 is occupied
+begin transaction;
+update flights set status = 1 where seat = 22;
+
+-- On P2: (Chunk 1)
+USE CS457_PA4;
+select * from Flights;
+begin transaction;
+update flights set status = 1 where seat = 22;
+commit; --there should be nothing to commit; it's an "abort"
+select * from Flights;
+
+-- On P1: (Chunk 2)
+commit; --persist the change to disk
+select * from Flights;
+
+-- On P2: (Chunk 2)
+select * from Flights;
