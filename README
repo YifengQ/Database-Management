@@ -11,6 +11,8 @@ Python Version 3.7.4
 Pop!_OS 20.04 LTS
 IDE: PyCharm Professional 2020.1.4
 
+This Project Replicates created a SQL Database using File Directories.
+
 Imported Libraries:
 os
 sys
